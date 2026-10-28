@@ -1,0 +1,82 @@
+@import "tailwindcss";
+
+:root {
+  /* Light Theme (Passenger default) */
+  --paper: #F5F2EA;
+  --surface: #FBF9F4;
+  --ink: #1C1B19;
+  --ink-soft: #5E5B54;
+  --rule: #DDD8CB;
+  --signal: #E8A200;
+  --signal-ink: #2B2000;
+  --go: #1E7A55;
+  --late: #C4452B;
+  --caution: #B8741A;
+  --info: #2F5F8A;
+
+  /* Typography */
+  --font-display: "Familjen Grotesk", "Trebuchet MS", sans-serif;
+  --font-body: "Public Sans", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", "IBM Plex Mono", monospace;
+
+  /* Radii */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+}
+
+.dark {
+  /* Dark Theme (Ops console default) */
+  --paper: #131412;
+  --surface: #1B1C19;
+  --ink: #ECE9E1;
+  --ink-soft: #A19D92;
+  --rule: #2D2E29;
+  --signal: #F59E0B;
+  --signal-ink: #1C1200;
+  --go: #2BB37D;
+  --late: #E2583E;
+  --caution: #D98824;
+  --info: #4A88BA;
+}
+
+body {
+  background-color: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-body);
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Tabular Numerals utility */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+  font-family: var(--font-mono);
+}
+
+/* Large minutes-away departure board numeral (Spec §9.3) */
+.minutes-loud {
+  font-size: 64px;
+  line-height: 1;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  font-family: var(--font-mono);
+}
+
+/* Transit Map Muted Tile Style (Spec §9.2) */
+.transit-map-tiles {
+  filter: grayscale(85%) contrast(90%) brightness(95%);
+}
+.dark .transit-map-tiles {
+  filter: invert(100%) hue-rotate(180deg) contrast(90%) brightness(80%);
+}
+
+/* Pulsing live dot animation (Spec §9.5) */
+@keyframes live-pulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.3); opacity: 0.6; }
+}
+.animate-live-pulse {
+  animation: live-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
