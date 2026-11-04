@@ -204,12 +204,12 @@ export const DesignShowcase: React.FC = () => {
           {/* Section 5: State Feedback & Error States */}
           <section className="space-y-3">
             <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--ink-soft)]">
-              5. Inline Feedback & Empty States
+              5. Inline Feedback & Empty States (Visual Example)
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <InlineError
-                message="WebSocket connection timed out. Falling back to 10s HTTP polling."
-                onRetry={() => alert('Retrying connection...')}
+                message="Sample warning badge: Connection slow (This is just a visual design preview)."
+                onRetry={() => alert('Sample retry clicked')}
               />
               <EmptyState
                 title="No active disruptions reported"
