@@ -230,3 +230,4 @@ erDiagram
 ### D. Operations & Passenger Information
 - **`Incident`**: Breakdowns, accidents, or disruptions with automated replacement candidate ranking.
 - **`Alert`**: Public-facing advisories visible directly on stop boards and route banners.
+
