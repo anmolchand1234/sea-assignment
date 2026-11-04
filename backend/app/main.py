@@ -16,6 +16,7 @@ from backend.app.core.errors import (
     generic_exception_handler,
 )
 from backend.app.db.session import get_db
+from backend.app.api.v1.router import api_router
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
@@ -49,6 +50,9 @@ app.add_exception_handler(WaylineError, wayline_exception_handler)
 app.add_exception_handler(StarletteHTTPException, http_exception_handler)
 app.add_exception_handler(RequestValidationError, validation_exception_handler)
 app.add_exception_handler(Exception, generic_exception_handler)
+
+# API Routers
+app.include_router(api_router, prefix=settings.API_V1_STR)
 
 @app.get("/health", tags=["System"])
 def health_check():
