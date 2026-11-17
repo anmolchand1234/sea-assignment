@@ -1,22 +1,27 @@
 import { useEffect, useState } from 'react';
 import { PassengerHome } from './features/passenger/PassengerHome';
 import { UserDashboard } from './features/dispatcher/UserDashboard';
+import { DriverPortal } from './features/driver/DriverPortal';
+import { AdminConsole } from './features/admin/AdminConsole';
 import { DesignShowcase } from './features/design-system/DesignShowcase';
 import { useAuthStore } from './lib/authStore';
-import { LayoutGrid, Bus, Shield } from 'lucide-react';
+import { LayoutGrid, Bus, Shield, UserCheck, Settings } from 'lucide-react';
 
 export default function App() {
   const { user, initFromStorage } = useAuthStore();
-  const [activeTab, setActiveTab] = useState<'passenger' | 'ops' | 'design'>('passenger');
+  const [activeTab, setActiveTab] = useState<'passenger' | 'ops' | 'driver' | 'admin' | 'design'>('passenger');
 
   useEffect(() => {
     initFromStorage();
   }, [initFromStorage]);
 
-  // If user signs in as dispatcher or admin, automatically default view to Ops Console
+  // Role-based auto navigation upon sign in
   useEffect(() => {
-    if (user && (user.role === 'dispatcher' || user.role === 'admin')) {
-      setActiveTab('ops');
+    if (user) {
+      if (user.role === 'dispatcher') setActiveTab('ops');
+      else if (user.role === 'admin') setActiveTab('admin');
+      else if (user.role === 'driver') setActiveTab('driver');
+      else if (user.role === 'passenger') setActiveTab('passenger');
     }
   }, [user]);
 
@@ -34,7 +39,7 @@ export default function App() {
             }`}
           >
             <Bus size={14} />
-            <span>Passenger Portal (Live Board)</span>
+            <span>Passenger Portal</span>
           </button>
 
           <button
@@ -46,12 +51,31 @@ export default function App() {
             }`}
           >
             <Shield size={14} />
-            <span>User / Dispatcher Console</span>
-            {user && (
-              <span className="text-[10px] px-1.5 py-0.2 rounded bg-black/10">
-                {user.role}
-              </span>
-            )}
+            <span>Dispatcher Console</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('driver')}
+            className={`px-3 py-1.5 rounded-[4px] cursor-pointer flex items-center gap-1.5 transition-colors ${
+              activeTab === 'driver'
+                ? 'bg-[var(--signal)] text-[var(--signal-ink)] font-bold'
+                : 'text-[var(--ink-soft)] hover:text-[var(--ink)]'
+            }`}
+          >
+            <UserCheck size={14} />
+            <span>Driver Portal</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('admin')}
+            className={`px-3 py-1.5 rounded-[4px] cursor-pointer flex items-center gap-1.5 transition-colors ${
+              activeTab === 'admin'
+                ? 'bg-[var(--signal)] text-[var(--signal-ink)] font-bold'
+                : 'text-[var(--ink-soft)] hover:text-[var(--ink)]'
+            }`}
+          >
+            <Settings size={14} />
+            <span>Admin Console</span>
           </button>
 
           <button
@@ -63,14 +87,14 @@ export default function App() {
             }`}
           >
             <LayoutGrid size={14} />
-            <span>Design System Primitives</span>
+            <span>Design System</span>
           </button>
         </div>
 
         <div className="flex items-center gap-2">
           {user ? (
             <span className="text-[11px] text-[var(--ink-soft)] font-mono">
-              Signed in: <strong className="text-[var(--ink)]">{user.name}</strong>
+              Signed in: <strong className="text-[var(--ink)]">{user.name}</strong> ({user.role})
             </span>
           ) : (
             <span className="text-[11px] text-[var(--ink-soft)] font-mono">
@@ -83,6 +107,8 @@ export default function App() {
       {/* Screen Render */}
       {activeTab === 'passenger' && <PassengerHome />}
       {activeTab === 'ops' && <UserDashboard />}
+      {activeTab === 'driver' && <DriverPortal />}
+      {activeTab === 'admin' && <AdminConsole />}
       {activeTab === 'design' && <DesignShowcase />}
     </div>
   );
