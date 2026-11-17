@@ -2,10 +2,26 @@ import React, { useState, useEffect } from 'react';
 import { DepartureRow, type Departure } from '../../components/design/DepartureRow';
 import { RouteChip } from '../../components/design/RouteChip';
 import { ConnectionStatus } from '../../components/design/ConnectionStatus';
-import { Search, MapPin, Bookmark, Bell, Bus, RefreshCw } from 'lucide-react';
+import { AuthModal } from '../../components/auth/AuthModal';
+import { ChangePasswordModal } from '../../components/auth/ChangePasswordModal';
+import { useAuthStore } from '../../lib/authStore';
+import {
+  Search,
+  MapPin,
+  Bookmark,
+  Bell,
+  Bus,
+  RefreshCw,
+  LogIn,
+  LogOut,
+  KeyRound,
+  Compass,
+  ArrowRight,
+} from 'lucide-react';
 import { fetchApi } from '../../lib/api';
 
 export const PassengerHome: React.FC = () => {
+  const { user, logout } = useAuthStore();
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<{ stops: any[]; routes: any[] }>({ stops: [], routes: [] });
   const [selectedStopId, setSelectedStopId] = useState<string>('S001');
@@ -14,6 +30,15 @@ export const PassengerHome: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [pinnedStops, setPinnedStops] = useState<string[]>(['S001', 'S003', 'S011']);
   const [alerts, setAlerts] = useState<any[]>([]);
+  const [authModalOpen, setAuthModalOpen] = useState(false);
+  const [changePwdOpen, setChangePwdOpen] = useState(false);
+
+  // Trip planner states (P-4)
+  const [plannerOpen, setPlannerOpen] = useState(false);
+  const [fromStop, setFromStop] = useState('S001');
+  const [toStop, setToStop] = useState('S009');
+  const [journeyResult, setJourneyResult] = useState<any>(null);
+  const [planning, setPlanning] = useState(false);
 
   // Load stop arrivals
   const loadArrivals = async (stopId: string) => {
@@ -54,11 +79,10 @@ export const PassengerHome: React.FC = () => {
   useEffect(() => {
     loadArrivals(selectedStopId);
     fetchApi('/public/alerts').then(setAlerts).catch(console.error);
-    
-    // Auto-refresh every 15 seconds
+
     const interval = setInterval(() => {
       loadArrivals(selectedStopId);
-    }, 15000);
+    }, 12000);
     return () => clearInterval(interval);
   }, [selectedStopId]);
 
@@ -66,6 +90,18 @@ export const PassengerHome: React.FC = () => {
     setPinnedStops((prev) =>
       prev.includes(code) ? prev.filter((c) => c !== code) : [...prev, code]
     );
+  };
+
+  const handlePlanJourney = async () => {
+    setPlanning(true);
+    try {
+      const res = await fetchApi(`/public/plan?from=${fromStop}&to=${toStop}`);
+      setJourneyResult(res);
+    } catch (err: any) {
+      alert(`Trip plan error: ${err.message}`);
+    } finally {
+      setPlanning(false);
+    }
   };
 
   return (
@@ -79,15 +115,45 @@ export const PassengerHome: React.FC = () => {
             </div>
             <div>
               <h1 className="text-base font-extrabold tracking-tight uppercase" style={{ fontFamily: 'var(--font-mono)' }}>
-                Wayline Transit
+                Wayline Passenger
               </h1>
               <p className="text-[10px] text-[var(--ink-soft)] uppercase tracking-wider font-semibold">
-                Prayagraj Municipal City Bus
+                Prayagraj Municipal City Bus • Live Board
               </p>
             </div>
           </div>
+
           <div className="flex items-center gap-2">
             <ConnectionStatus status="connected" />
+            {user ? (
+              <div className="flex items-center gap-2 pl-2 border-l border-[var(--rule)]">
+                <span className="text-xs font-bold text-[var(--ink)] hidden sm:inline">
+                  {user.name}
+                </span>
+                <button
+                  onClick={() => setChangePwdOpen(true)}
+                  title="Change Password"
+                  className="p-1.5 rounded border border-[var(--rule)] text-[var(--ink-soft)] hover:text-[var(--ink)] cursor-pointer"
+                >
+                  <KeyRound size={13} />
+                </button>
+                <button
+                  onClick={logout}
+                  title="Sign Out"
+                  className="p-1.5 rounded border border-[var(--late)]/30 text-[var(--late)] hover:bg-[var(--late)]/10 cursor-pointer"
+                >
+                  <LogOut size={13} />
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => setAuthModalOpen(true)}
+                className="px-3 py-1.5 rounded-[4px] bg-[var(--signal)] text-[var(--signal-ink)] text-xs font-bold flex items-center gap-1.5 cursor-pointer hover:opacity-90"
+              >
+                <LogIn size={13} />
+                <span>Sign In</span>
+              </button>
+            )}
           </div>
         </div>
       </header>
@@ -101,6 +167,110 @@ export const PassengerHome: React.FC = () => {
               <span>{alerts[0].title}</span>
             </div>
             <p className="text-[var(--ink)]">{alerts[0].body}</p>
+          </div>
+        )}
+
+        {/* Action Bar: Planner Toggle & Quick Info */}
+        <div className="flex items-center justify-between">
+          <span className="text-xs font-bold uppercase tracking-wider text-[var(--ink-soft)]">
+            Find Next Bus or Plan Route
+          </span>
+          <button
+            onClick={() => setPlannerOpen(!plannerOpen)}
+            className="text-xs font-bold text-[var(--signal-ink)] bg-[var(--signal)]/20 px-2.5 py-1 rounded-[4px] flex items-center gap-1 cursor-pointer hover:bg-[var(--signal)]/30"
+          >
+            <Compass size={13} />
+            <span>{plannerOpen ? 'Close Trip Planner' : 'Trip Planner (A → B)'}</span>
+          </button>
+        </div>
+
+        {/* Trip Planner Drawer/Box (Spec §5.1 P-4) */}
+        {plannerOpen && (
+          <div className="p-4 rounded-[6px] border-2 border-[var(--signal)] bg-[var(--surface)] space-y-3 text-xs">
+            <h3 className="font-bold uppercase tracking-wider text-[var(--ink)] flex items-center gap-1.5">
+              <Compass size={15} className="text-[var(--signal)]" />
+              <span>Journey Planner (A to B)</span>
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="block text-[10px] font-bold uppercase text-[var(--ink-soft)] mb-1">
+                  From Stop
+                </label>
+                <select
+                  value={fromStop}
+                  onChange={(e) => setFromStop(e.target.value)}
+                  className="w-full p-2 border border-[var(--rule)] rounded bg-[var(--paper)] text-xs font-semibold"
+                >
+                  <option value="S001">S001 - Civil Lines Terminal</option>
+                  <option value="S003">S003 - Prayagraj Junction</option>
+                  <option value="S011">S011 - IIIT Allahabad (Jhalwa)</option>
+                  <option value="S013">S013 - Naini Railway Station</option>
+                  <option value="S018">S018 - Bamrauli Airport Gate</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-bold uppercase text-[var(--ink-soft)] mb-1">
+                  To Stop
+                </label>
+                <select
+                  value={toStop}
+                  onChange={(e) => setToStop(e.target.value)}
+                  className="w-full p-2 border border-[var(--rule)] rounded bg-[var(--paper)] text-xs font-semibold"
+                >
+                  <option value="S009">S009 - Sangam Ghat Terminal</option>
+                  <option value="S006">S006 - Katra Market</option>
+                  <option value="S021">S021 - MNNIT Allahabad Gate</option>
+                  <option value="S007">S007 - University of Allahabad</option>
+                  <option value="S015">S015 - Jhunsi Bus Stand</option>
+                </select>
+              </div>
+            </div>
+
+            <button
+              onClick={handlePlanJourney}
+              disabled={planning}
+              className="w-full py-2 bg-[var(--signal)] text-[var(--signal-ink)] font-bold rounded cursor-pointer hover:opacity-90"
+            >
+              {planning ? 'Calculating Best Routes...' : 'Find Fastest Bus Route'}
+            </button>
+
+            {/* Planner Results */}
+            {journeyResult && (
+              <div className="pt-2 space-y-2 border-t border-[var(--rule)]">
+                <span className="font-bold uppercase tracking-wider text-[10px] text-[var(--ink-soft)]">
+                  Available Route Options:
+                </span>
+                {journeyResult.plans.length === 0 ? (
+                  <p className="text-[var(--ink-soft)]">No direct or 1-transfer transit path found.</p>
+                ) : (
+                  journeyResult.plans.map((p: any, idx: number) => (
+                    <div key={idx} className="p-3 bg-[var(--paper)] rounded border border-[var(--rule)] flex items-center justify-between">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <span className="font-bold text-sm text-[var(--ink)]">{p.total_minutes} mins</span>
+                          <span className="text-[10px] uppercase font-bold text-[var(--go)]">
+                            {p.transfers === 0 ? 'Direct Route' : '1 Transfer'}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1.5 text-[11px] text-[var(--ink-soft)]">
+                          {p.legs.map((leg: any, lIdx: number) => (
+                            <React.Fragment key={lIdx}>
+                              {leg.type === 'ride' ? (
+                                <RouteChip code={leg.route_short_name || 'BUS'} size="sm" />
+                              ) : (
+                                <span className="text-[10px] italic">transfer</span>
+                              )}
+                              {lIdx < p.legs.length - 1 && <ArrowRight size={10} />}
+                            </React.Fragment>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            )}
           </div>
         )}
 
@@ -262,6 +432,9 @@ export const PassengerHome: React.FC = () => {
           </div>
         </section>
       </main>
+
+      <AuthModal isOpen={authModalOpen} onClose={() => setAuthModalOpen(false)} />
+      <ChangePasswordModal isOpen={changePwdOpen} onClose={() => setChangePwdOpen(false)} />
     </div>
   );
 };

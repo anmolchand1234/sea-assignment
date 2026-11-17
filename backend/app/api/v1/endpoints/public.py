@@ -255,3 +255,4 @@ def get_alerts(db: Session = Depends(get_db)):
         }
         for a in alerts
     ]
+

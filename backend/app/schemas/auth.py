@@ -5,12 +5,23 @@ class LoginRequest(BaseModel):
     email: EmailStr
     password: str
 
+class SignUpRequest(BaseModel):
+    name: str
+    email: EmailStr
+    password: str
+    role: str = "passenger"  # passenger or user / dispatcher
+
+class ChangePasswordRequest(BaseModel):
+    old_password: str
+    new_password: str
+
 class TokenResponse(BaseModel):
     access_token: str
     refresh_token: str
     token_type: str = "bearer"
     role: str
     name: str
+    email: str
 
 class UserResponse(BaseModel):
     id: str
@@ -21,4 +32,3 @@ class UserResponse(BaseModel):
 
     class Config:
         from_attributes = True
-

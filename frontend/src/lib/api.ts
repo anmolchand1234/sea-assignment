@@ -19,3 +19,4 @@ export async function fetchApi(path: string, options?: RequestInit) {
 
   return res.json();
 }
+

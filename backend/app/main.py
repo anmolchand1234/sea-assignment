@@ -1,4 +1,5 @@
 import uuid
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, Depends, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.exceptions import RequestValidationError
@@ -17,6 +18,16 @@ from backend.app.core.errors import (
 )
 from backend.app.db.session import get_db
 from backend.app.api.v1.router import api_router
+from backend.app.api.v1.endpoints.ws import router as ws_router
+from backend.app.realtime.simulator import simulator
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup: launch the telemetry simulator
+    simulator.start()
+    yield
+    # Shutdown: stop simulator
+    simulator.stop()
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
@@ -24,6 +35,7 @@ app = FastAPI(
     docs_url="/docs",
     redoc_url="/redoc",
     openapi_url="/openapi.json",
+    lifespan=lifespan,
 )
 
 # CORS
@@ -51,7 +63,8 @@ app.add_exception_handler(StarletteHTTPException, http_exception_handler)
 app.add_exception_handler(RequestValidationError, validation_exception_handler)
 app.add_exception_handler(Exception, generic_exception_handler)
 
-# API Routers
+# Routers
+app.include_router(ws_router)
 app.include_router(api_router, prefix=settings.API_V1_STR)
 
 @app.get("/health", tags=["System"])
