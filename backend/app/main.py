@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import text
 
 from backend.app.core.config import settings
-from backend.app.core.logging import logger, request_filter
+from backend.app.core.logging import logger
 from backend.app.core.errors import (
     WaylineError,
     wayline_exception_handler,
@@ -52,7 +52,6 @@ app.add_middleware(
 async def correlation_id_middleware(request: Request, call_next):
     req_id = request.headers.get("X-Request-ID") or str(uuid.uuid4())[:8]
     request.state.request_id = req_id
-    request_filter.request_id = req_id
     response: Response = await call_next(request)
     response.headers["X-Request-ID"] = req_id
     return response
