@@ -1,15 +1,34 @@
-from pydantic import BaseModel, EmailStr
+import re
 from typing import Optional
+from pydantic import BaseModel, field_validator
+
+EMAIL_REGEX = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 
 class LoginRequest(BaseModel):
-    email: EmailStr
+    email: str
     password: str
+
+    @field_validator("email")
+    @classmethod
+    def validate_email(cls, v: str) -> str:
+        v = v.strip().lower()
+        if not EMAIL_REGEX.match(v):
+            raise ValueError("Invalid email address format")
+        return v
 
 class SignUpRequest(BaseModel):
     name: str
-    email: EmailStr
+    email: str
     password: str
     role: str = "passenger"  # passenger or user / dispatcher
+
+    @field_validator("email")
+    @classmethod
+    def validate_email(cls, v: str) -> str:
+        v = v.strip().lower()
+        if not EMAIL_REGEX.match(v):
+            raise ValueError("Invalid email address format")
+        return v
 
 class ChangePasswordRequest(BaseModel):
     old_password: str
