@@ -85,6 +85,18 @@ export const UserDashboard: React.FC = () => {
     }
   };
 
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-[var(--paper)] flex items-center justify-center">
+        <div className="text-center space-y-3 p-8">
+          <Shield size={40} className="mx-auto text-[var(--ink-soft)]" />
+          <p className="text-[var(--ink)] font-semibold text-lg">Dispatcher Console</p>
+          <p className="text-[var(--ink-soft)] text-sm">You are signed out. Use the navigation bar to sign in.</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[var(--paper)] text-[var(--ink)]">
       {/* Top Operations Header */}

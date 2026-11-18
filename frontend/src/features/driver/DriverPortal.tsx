@@ -85,6 +85,18 @@ export const DriverPortal: React.FC = () => {
     }
   };
 
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-[var(--paper)] flex items-center justify-center">
+        <div className="text-center space-y-3 p-8">
+          <ShieldAlert size={40} className="mx-auto text-[var(--ink-soft)]" />
+          <p className="text-[var(--ink)] font-semibold text-lg">Driver Portal</p>
+          <p className="text-[var(--ink-soft)] text-sm">You are signed out. Use the navigation bar to sign in.</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[var(--paper)] text-[var(--ink)]">
       {/* High-contrast mobile-friendly driver header (SPEC §8.4) */}
@@ -108,9 +120,10 @@ export const DriverPortal: React.FC = () => {
             </button>
             <button
               onClick={logout}
-              className="p-1.5 rounded border border-[var(--late)]/30 text-[var(--late)] cursor-pointer"
+              className="px-2.5 py-1.5 rounded-[4px] border border-[var(--late)]/30 bg-[var(--late)]/10 text-[var(--late)] hover:bg-[var(--late)]/20 text-xs font-bold flex items-center gap-1.5 cursor-pointer"
             >
               <LogOut size={15} />
+              <span>Sign Out</span>
             </button>
           </div>
         </div>

@@ -15,13 +15,16 @@ export default function App() {
     initFromStorage();
   }, [initFromStorage]);
 
-  // Role-based auto navigation upon sign in
+  // Role-based auto navigation upon sign in; redirect to passenger on sign out
   useEffect(() => {
     if (user) {
       if (user.role === 'dispatcher') setActiveTab('ops');
       else if (user.role === 'admin') setActiveTab('admin');
       else if (user.role === 'driver') setActiveTab('driver');
       else if (user.role === 'passenger') setActiveTab('passenger');
+    } else {
+      // Signed out — always fall back to the public passenger portal
+      setActiveTab('passenger');
     }
   }, [user]);
 
